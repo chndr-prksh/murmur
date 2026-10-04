@@ -53,7 +53,7 @@ const FRAME_TOOL = {
           type: 'object', additionalProperties: false,
           required: ['name', 'share', 'reach', 'support', 'oppose', 'amplify', 'reaction'],
           properties: {
-            name: { type: 'string' },
+            name: { type: 'string', description: 'Short label, at most three words.' },
             share: { type: 'number', description: 'Fraction of the population in this group. All shares sum to 1.' },
             ...RATES,
             reaction: { type: 'string', description: 'One sentence on how this group reacts.' },

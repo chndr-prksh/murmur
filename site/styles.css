@@ -53,6 +53,7 @@ main { position: relative; z-index: 2; }
 
 .hero { max-width: 760px; width: 100%; }
 .stage.live .hero h1, .stage.live .hero .lede, .stage.live .hero .chips { display: none; }
+.stage.live .note:not(.err):not(:empty) { font-size: 12px; color: var(--text-3); }
 
 h1 {
   margin: 0 0 14px;

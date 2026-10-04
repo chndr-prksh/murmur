@@ -217,8 +217,10 @@
         ctx.strokeStyle = 'rgba(6, 8, 13, 0.9)';
         ctx.fillStyle = '#a3acbb';
         for (const label of this.labels) {
-          const text = label.text.toUpperCase();
-          const x = Math.max(70, Math.min(this.w - 70, label.x));
+          // Model-written audience names can be long; keep them short and fully on screen.
+          const text = (label.text.length > 26 ? label.text.slice(0, 25).trimEnd() + '…' : label.text).toUpperCase();
+          const half = ctx.measureText(text).width / 2 + 8;
+          const x = Math.max(half, Math.min(this.w - half, label.x));
           const y = Math.max(190, label.y);
           ctx.strokeText(text, x, y);
           ctx.fillText(text, x, y);
