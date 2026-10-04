@@ -118,7 +118,7 @@
       return;
     }
     const t = laya.tone;
-    $('laya-lead').textContent = `Laya, an open decision model, scored ${laya.items.length} reports independently of Claude. Each report counts in proportion to its relevance.`;
+    $('laya-lead').textContent = `Laya, an open decision model, scored ${laya.items.length} reports independently of Claude.`;
     $('laya-bar').innerHTML =
       `<i class="support" style="flex:${t.supportive}"></i><i class="neutral swatch" style="flex:${t.neutral};height:auto;width:auto"></i><i class="oppose" style="flex:${t.critical}"></i>`;
     hover($('laya-bar'), `Supportive ${pct(t.supportive)} · Neutral ${pct(t.neutral)} · Critical ${pct(t.critical)}`);

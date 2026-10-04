@@ -116,7 +116,6 @@ const LAYA_QUESTIONS = {
       supportive: 'approval, praise, enthusiasm or endorsement',
     },
   },
-  relevant: { type: 'noul', instructions: 'Is this report directly about the event or a closely comparable past event?' },
 };
 
 const clamp01 = (v) => Math.max(0, Math.min(1, Number(v) || 0));
@@ -173,12 +172,10 @@ async function scoreEvidence(env, question, evidence) {
         ...e,
         tone: a.tone?.choice || 'neutral',
         probabilities: Object.fromEntries(TONES.map((t) => [t, clamp01(probs[t])])),
-        relevant: clamp01(a.relevant?.noul),
       };
     });
-    // Each report counts in proportion to how relevant Laya judged it.
-    const weight = items.reduce((t, it) => t + it.relevant, 0) || 1;
-    const tone = Object.fromEntries(TONES.map((t) => [t, items.reduce((sum, it) => sum + it.probabilities[t] * it.relevant, 0) / weight]));
+    // Laya is not asked for relevance: tested, it could not tell an on-topic report from an unrelated one.
+    const tone = Object.fromEntries(TONES.map((t) => [t, mean(items.map((it) => it.probabilities[t]))]));
     return { model: results[0].routing?.model || 'laya', tone, items };
   } catch (err) {
     console.error('laya scoring skipped:', err.message);
