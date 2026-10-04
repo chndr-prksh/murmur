@@ -5,27 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Murmur</title>
   <meta name="description" content="Ask what happens next. Murmur researches the question, forecasts the outcomes and simulates how one million people react.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="backdrop" aria-hidden="true"></div>
   <canvas id="web" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
 
   <header class="top">
-    <a class="brand" href="./">MURMUR</a>
+    <a class="brand" href="./"><i class="mark"></i>MURMUR</a>
     <span class="tag">population-scale reaction forecasts</span>
   </header>
 
   <main>
     <section class="stage" id="stage">
       <div class="hero" id="hero">
-        <h1>Ask what happens next.</h1>
+        <p class="eyebrow"><i class="pulse"></i>1,000,000 simulated people · 20 runs · live news</p>
+        <h1><span>Ask</span> <span>what</span> <span>happens</span> <span class="hl">next.</span></h1>
         <p class="lede">Murmur reads the latest news, finds what happened the last time, and plays the reaction out across <strong>1,000,000 simulated people</strong>.</p>
 
         <form id="ask" autocomplete="off">
           <label class="sr" for="q">Your question</label>
           <input id="q" name="q" maxlength="300" placeholder="What if a major airline bans carry-on bags?" required>
-          <button type="submit" id="go">Simulate</button>
+          <button type="submit" id="go"><span>Simulate</span><i class="arrow" aria-hidden="true">→</i></button>
         </form>
+        <div class="progress" id="progress" hidden>
+          <div class="bar"><i></i></div>
+          <span id="progress-text"></span>
+        </div>
         <p class="note" id="note"></p>
         <div class="chips" id="chips"></div>
       </div>

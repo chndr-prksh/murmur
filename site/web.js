@@ -25,10 +25,23 @@
       this.snapshots = null;
       this.day = 0;
       this.onDay = null;
+      this.px = new Float32Array(this.count);
+      this.py = new Float32Array(this.count);
+      this.adj = [];
+      this.pulses = [];
+      this.rings = [];
+      this.busy = false;
+      this.mx = -1e4; this.my = -1e4;
       this.resize();
       this.layoutIdle();
-      this.x.set(this.tx); this.y.set(this.ty);
+      // Intro: every dot starts at the centre and the web unfolds outward.
+      for (let i = 0; i < this.count; i++) {
+        this.x[i] = this.w / 2 + gauss() * 30;
+        this.y[i] = this.h / 2 + gauss() * 30;
+      }
       window.addEventListener('resize', () => { this.resize(); this.relayout(); });
+      window.addEventListener('pointermove', (e) => { this.mx = e.clientX; this.my = e.clientY; });
+      window.addEventListener('pointerleave', () => { this.mx = -1e4; this.my = -1e4; });
       requestAnimationFrame((t) => this.frame(t));
     }
 
@@ -115,6 +128,20 @@
         if (i % 23 === 0) out.push(i, (i * 7919 + 13) % this.count);
       }
       this.links = Int32Array.from(out);
+      this.adj = Array.from({ length: this.count }, () => []);
+      for (let l = 0; l < out.length; l += 2) { this.adj[out[l]].push(out[l + 1]); this.adj[out[l + 1]].push(out[l]); }
+      this.pulses = [];
+    }
+
+    // While a forecast is being fetched the web carries more signal traffic.
+    setBusy(on) { this.busy = on; }
+
+    spawnPulse(t, from) {
+      const a = from ?? Math.floor(Math.random() * this.count);
+      const next = this.adj[a];
+      if (!next || !next.length) return null;
+      const b = next[Math.floor(Math.random() * next.length)];
+      return { a, b, t0: t, dur: (this.busy ? 260 : 520) + Math.random() * 300 };
     }
 
     setSnapshots(snapshots) {
@@ -144,12 +171,28 @@
         this.day = Math.min(last, ((t - this.playStart) / 8000) * last);
       }
       const day = Math.floor(this.day);
-      if (this.onDay && day !== this.shownDay) { this.shownDay = day; this.onDay(day); }
+      if (day !== this.shownDay) {
+        // Flash a ring on a sample of the people whose state changed today.
+        if (this.snapshots && day > 0 && !reduced) {
+          const now = this.snapshots[day], before = this.snapshots[day - 1];
+          const step = Math.max(1, Math.floor(count / 900));
+          for (let i = Math.floor(Math.random() * step); i < count && this.rings.length < 260; i += step) {
+            if (now[i] !== before[i]) this.rings.push({ i, t0: t, color: COLORS[now[i]] });
+          }
+        }
+        this.shownDay = day;
+        if (this.onDay) this.onDay(day);
+      }
 
-      const px = new Float32Array(count), py = new Float32Array(count);
+      // Ease toward the layout by elapsed time, not frame count, so a throttled
+      // or background tab still ends up in the right place.
+      const dt = Math.min(1000, t - (this.lastT ?? t));
+      this.lastT = t;
+      const ease = reduced ? 1 : 1 - Math.exp(-dt / 280);
+      const { px, py } = this;
       for (let i = 0; i < count; i++) {
-        this.x[i] += (this.tx[i] - this.x[i]) * 0.06;
-        this.y[i] += (this.ty[i] - this.y[i]) * 0.06;
+        this.x[i] += (this.tx[i] - this.x[i]) * ease;
+        this.y[i] += (this.ty[i] - this.y[i]) * ease;
         const drift = reduced ? 0 : 2.2;
         px[i] = this.x[i] + Math.sin(t * 0.0004 + this.phase[i]) * drift;
         py[i] = this.y[i] + Math.cos(t * 0.0005 + this.phase[i] * 1.7) * drift;
@@ -197,18 +240,7 @@
         }
       }
 
-      // Idle twinkle so the empty web still reads as alive.
-      if (!this.snapshots && !reduced) {
-        ctx.fillStyle = 'rgba(160, 190, 255, 0.85)';
-        ctx.beginPath();
-        const beat = Math.floor(t / 420);
-        for (let n = 0; n < 60; n++) {
-          const i = (beat * 131 + n * 977) % count;
-          ctx.moveTo(px[i] + 2, py[i]);
-          ctx.arc(px[i], py[i], 2, 0, 6.283);
-        }
-        ctx.fill();
-      }
+      if (!reduced) this.effects(t, day);
 
       if (this.labels.length) {
         ctx.font = '600 11px ui-monospace, Menlo, monospace';
@@ -230,6 +262,89 @@
       requestAnimationFrame((n) => this.frame(n));
     }
   }
+
+  // Decorative motion layered on the web: signals travelling along links,
+  // rings where a person changes state, a sweep while a forecast is loading,
+  // and a constellation around the pointer.
+  Web.prototype.effects = function (t, day) {
+    const { ctx, px, py, count } = this;
+    ctx.globalCompositeOperation = 'lighter';
+
+    const want = this.busy ? 320 : this.snapshots ? 60 : 110;
+    while (this.pulses.length < want) {
+      const p = this.spawnPulse(t - Math.random() * 400);
+      if (!p) break;
+      this.pulses.push(p);
+    }
+    if (this.pulses.length > want) this.pulses.length = want;
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = this.busy ? 'rgba(120, 190, 255, 0.75)' : 'rgba(140, 180, 255, 0.6)';
+    ctx.fillStyle = 'rgba(210, 228, 255, 0.95)';
+    ctx.beginPath();
+    for (let n = 0; n < this.pulses.length; n++) {
+      let p = this.pulses[n];
+      let k = (t - p.t0) / p.dur;
+      if (k >= 1) {
+        // Hop onward from where it arrived, or start somewhere new.
+        p = this.pulses[n] = this.spawnPulse(t, Math.random() < 0.8 ? p.b : undefined) || p;
+        k = 0;
+      }
+      k = Math.max(0, k);
+      const tail = Math.max(0, k - 0.35);
+      const x = px[p.a] + (px[p.b] - px[p.a]) * k, y = py[p.a] + (py[p.b] - py[p.a]) * k;
+      ctx.moveTo(px[p.a] + (px[p.b] - px[p.a]) * tail, py[p.a] + (py[p.b] - py[p.a]) * tail);
+      ctx.lineTo(x, y);
+      ctx.rect(x - 1, y - 1, 2, 2);
+    }
+    ctx.stroke();
+    ctx.fill();
+
+    ctx.lineWidth = 1;
+    this.rings = this.rings.filter((r) => t - r.t0 < 700);
+    for (const r of this.rings) {
+      const k = (t - r.t0) / 700;
+      ctx.globalAlpha = (1 - k) * 0.7;
+      ctx.strokeStyle = r.color;
+      ctx.beginPath();
+      ctx.arc(px[r.i], py[r.i], 2 + k * 13, 0, 6.283);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    if (this.busy) {
+      const reach = Math.hypot(this.w, this.h) / 2;
+      for (let n = 0; n < 3; n++) {
+        const k = ((t / 2600) + n / 3) % 1;
+        ctx.globalAlpha = (1 - k) * 0.35;
+        ctx.strokeStyle = '#3987e5';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(this.w / 2, this.h / 2, k * reach, 0, 6.283);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // Pointer constellation.
+    if (this.mx > -1e3) {
+      const R = 120;
+      ctx.lineWidth = 1;
+      for (let i = 0; i < count; i++) {
+        const dx = px[i] - this.mx, dy = py[i] - this.my;
+        if (dx > R || dx < -R || dy > R || dy < -R) continue;
+        const d = Math.hypot(dx, dy);
+        if (d > R) continue;
+        const a = 1 - d / R;
+        ctx.strokeStyle = `rgba(150, 195, 255, ${(a * 0.35).toFixed(3)})`;
+        ctx.beginPath();
+        ctx.moveTo(this.mx, this.my); ctx.lineTo(px[i], py[i]);
+        ctx.stroke();
+        ctx.fillStyle = `rgba(220, 235, 255, ${(a * 0.9).toFixed(3)})`;
+        ctx.fillRect(px[i] - 1.5, py[i] - 1.5, 3, 3);
+      }
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  };
 
   window.MurmurWeb = Web;
 })();

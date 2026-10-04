@@ -13,6 +13,24 @@
   const pct = (v, digits = 0) => (v * 100).toFixed(digits) + '%';
   const num = (v) => Math.round(v).toLocaleString('en-US');
   const clamp01 = (v) => Math.max(0, Math.min(1, Number(v) || 0));
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Counts a number up to its value. Used for the headline counters and percentages.
+  function tween(el, to, format = num, ms = 900) {
+    if (reduced || document.hidden) { el.textContent = format(to); return; }
+    const t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / ms);
+      el.textContent = format(to * (1 - Math.pow(1 - k, 3)));
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  // Panels fade up as they scroll into view.
+  const reveal = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); reveal.unobserve(e.target); } });
+  }, { threshold: 0.12 });
 
   const web = new window.MurmurWeb($('web'));
   const tip = $('tip');
@@ -70,12 +88,19 @@
       row.className = 'out';
       row.innerHTML =
         `<div class="out-label">${esc(o.label)}</div>` +
-        `<div class="track"><div class="fill" style="width:${p * 100}%"></div>` +
+        `<div class="track"><div class="fill" data-w="${p * 100}"></div>` +
         (hi - lo > 0.005 ? `<div class="whisker" style="left:${lo * 100}%;width:${(hi - lo) * 100}%"></div>` : '') +
         `</div><div class="out-val">${pct(p)}</div>`;
       hover(row, `<b>${pct(p)}</b> (range ${pct(lo)} to ${pct(hi)})<br>${esc(o.rationale)}`);
       box.appendChild(row);
+      tween(row.querySelector('.out-val'), p, (v) => pct(v), 1100);
     });
+    // Bars grow from zero once the rows are in the page. A timer, not an
+    // animation frame, so they still fill in a background tab.
+    setTimeout(() => {
+      box.querySelectorAll('.fill').forEach((el) => { el.style.width = el.dataset.w + '%'; });
+      box.classList.add('drawn');
+    }, 60);
   }
 
   function renderSegments(segments) {
@@ -160,12 +185,12 @@
       const band = res[s.key];
       const area = band.max.map((v, d) => `${d ? 'L' : 'M'}${X(d).toFixed(1)},${Y(v).toFixed(1)}`).join('') +
         band.min.map((v, d) => [d, v]).reverse().map(([d, v]) => `L${X(d).toFixed(1)},${Y(v).toFixed(1)}`).join('') + 'Z';
-      svg += `<path d="${area}" fill="${s.color}" opacity="0.18"/>` +
-        `<path d="${line(band.mean)}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round"/>`;
+      svg += `<path class="band" d="${area}" fill="${s.color}" opacity="0.18"/>` +
+        `<path class="draw" pathLength="1" d="${line(band.mean)}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round"/>`;
     });
     ends.forEach(({ s, y }) => {
-      svg += `<circle cx="${X(days)}" cy="${Y(res[s.key].mean[days])}" r="4" fill="${s.color}" stroke="#0b0e14" stroke-width="2"/>` +
-        `<text class="end" x="${X(days) + 9}" y="${y + 4}">${s.name} ${pct(res[s.key].mean[days], 1)}</text>`;
+      svg += `<circle class="endpoint" cx="${X(days)}" cy="${Y(res[s.key].mean[days])}" r="4" fill="${s.color}" stroke="#0b0e14" stroke-width="2"/>` +
+        `<text class="end endpoint" x="${X(days) + 9}" y="${y + 4}">${s.name} ${pct(res[s.key].mean[days], 1)}</text>`;
     });
     svg += `<line id="cross" y1="${T}" y2="${H - B}" stroke="rgba(255,255,255,0.35)" visibility="hidden"/>` +
       `<rect id="hit" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/></svg>`;
@@ -221,8 +246,8 @@
       ? 'Sample forecast. The live backend is not connected, so the probabilities and audience rates below are hand-written examples. The population simulation is real and ran in your browser.'
       : '';
     $('summary').textContent = f.summary || '';
-    $('c-sources').textContent = demo ? '0 (sample)' : num((f.sources || []).length);
-    $('c-samples').textContent = demo ? '0 (sample)' : num(f.meta?.samples || 0);
+    if (demo) { $('c-sources').textContent = '0 (sample)'; $('c-samples').textContent = '0 (sample)'; }
+    else { tween($('c-sources'), (f.sources || []).length); tween($('c-samples'), f.meta?.samples || 0); }
     $('c-inter').textContent = '0';
 
     renderOutcomes(f.outcomes || []);
@@ -230,6 +255,12 @@
     renderLists(f);
     renderLaya(f, demo);
     $('timeline').innerHTML = '<p class="fine">Running the simulation…</p>';
+    // A background tab does not report intersections, so show everything there.
+    document.querySelectorAll('.results .panel').forEach((el) => {
+      if (document.hidden || reduced) { el.classList.add('in'); return; }
+      el.classList.remove('in');
+      reveal.observe(el);
+    });
     web.layoutSegments(segments);
     web.snapshots = null;
     simulate(f, segments);
@@ -242,7 +273,17 @@
       return;
     }
     $('go').disabled = true;
-    setNote('Searching recent news and past events. This takes about a minute.');
+    setNote('');
+    const started = Date.now();
+    const tick = () => {
+      const s = Math.floor((Date.now() - started) / 1000);
+      $('progress-text').textContent = `Searching live news and polling forecasters · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')} · usually about two minutes`;
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+    $('progress').hidden = false;
+    $('stage').classList.add('busy');
+    web.setBusy(true);
     try {
       const res = await fetch(API + '/api/forecast', {
         method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ question }),
@@ -255,6 +296,10 @@
     } catch (err) {
       setNote(err.message || 'Something went wrong. Try again.', true);
     } finally {
+      clearInterval(timer);
+      $('progress').hidden = true;
+      $('stage').classList.remove('busy');
+      web.setBusy(false);
       $('go').disabled = false;
     }
   }
@@ -266,6 +311,7 @@
   });
 
   chips();
+  tween($('c-people'), POPULATION, num, 1600);
   if (!API) setNote('Sample mode: the live backend is not connected.');
   else setNote('Questions and forecasts are saved and can be opened by anyone with the link.');
 
