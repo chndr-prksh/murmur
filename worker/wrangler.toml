@@ -6,11 +6,11 @@ compatibility_date = "2026-09-01"
 # then paste the id it prints here.
 [[kv_namespaces]]
 binding = "FORECASTS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "90845ca75d3a4e14ae3ffd7b92ed2ed7"
 
 [vars]
 # Comma-separated origins allowed to call the API (your GitHub Pages URL, plus local dev).
-ALLOWED_ORIGINS = "http://localhost:4173"
+ALLOWED_ORIGINS = "https://chndr-prksh.github.io,http://localhost:4173"
 # New questions each visitor may ask per day.
 DAILY_LIMIT = "5"
 # Independent forecaster samples averaged per question.
