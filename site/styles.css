@@ -58,11 +58,7 @@ body {
   font: 600 14px/1 var(--mono); letter-spacing: 0.42em;
   color: var(--text); text-decoration: none;
 }
-.mark {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: var(--blue); box-shadow: 0 0 0 3px rgba(57, 135, 229, 0.2), 0 0 16px var(--blue);
-  animation: breathe 2.6s ease-in-out infinite;
-}
+.mark { width: 26px; height: 26px; border-radius: 7px; box-shadow: 0 0 18px rgba(57, 135, 229, 0.55); animation: breathe 2.6s ease-in-out infinite; }
 .tag { font: 11px/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
 
 main { position: relative; z-index: 2; }
@@ -335,7 +331,7 @@ th:first-child, td:first-child { text-align: left; }
 @keyframes fadeDown { from { opacity: 0; transform: translateY(-10px); } }
 @keyframes word { from { opacity: 0; transform: translateY(0.35em); filter: blur(10px); } }
 @keyframes sheen { to { background-position: -220% 0; } }
-@keyframes breathe { 50% { box-shadow: 0 0 0 6px rgba(57, 135, 229, 0.08), 0 0 26px var(--blue); } }
+@keyframes breathe { 50% { box-shadow: 0 0 30px rgba(57, 135, 229, 0.9); } }
 @keyframes ping { to { transform: scale(3.2); opacity: 0; } }
 @keyframes shimmer { to { left: 130%; } }
 @keyframes slide { from { left: -35%; } to { left: 100%; } }

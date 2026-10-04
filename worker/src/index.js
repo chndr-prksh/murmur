@@ -159,7 +159,7 @@ async function scoreEvidence(env, question, evidence) {
         ...(env.LAYA_API_KEY ? { authorization: `Bearer ${env.LAYA_API_KEY}` } : {}),
       },
       body: JSON.stringify({ states: evidence.map((e) => ({ event: question, report: e.report })), questions: LAYA_QUESTIONS }),
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(25000),
     });
     if (!res.ok) throw new Error(`laya ${res.status}`);
     const { results } = await res.json();

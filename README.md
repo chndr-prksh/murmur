@@ -1,5 +1,9 @@
 # Murmur
 
+![Murmur: ask what happens next](site/og.png)
+
+**Live site:** https://chndr-prksh.github.io/murmur/
+
 Ask what happens next. Murmur researches a question with current news, forecasts the outcomes, and simulates how one million people react.
 
 ## How it works
@@ -41,7 +45,7 @@ Then set `ALLOWED_ORIGINS` in `worker/wrangler.toml` to your site's URL, redeplo
 
 ### Laya (optional)
 
-Laya needs its own host with Python; it cannot run inside the Worker.
+Laya needs its own host with Python; it cannot run inside the Worker. `laya-server/` holds a container image for Google Cloud Run.
 
 ```bash
 pip install "laya[serve]"
