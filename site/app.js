@@ -108,6 +108,28 @@
       : '<li>No live sources: this is the built-in sample.</li>';
   }
 
+  // Laya's reading of the evidence. Hidden on live forecasts made without it.
+  function renderLaya(f, demo) {
+    const laya = f.laya;
+    $('laya-panel').hidden = !laya && !demo;
+    $('laya-body').hidden = !laya;
+    if (!laya) {
+      $('laya-lead').textContent = 'On live forecasts, Laya (an open decision model) scores whether each source Claude read is critical, neutral or supportive. It does not run on the sample.';
+      return;
+    }
+    const t = laya.tone;
+    $('laya-lead').textContent = `Laya, an open decision model, scored ${laya.items.length} reports independently of Claude. Each report counts in proportion to its relevance.`;
+    $('laya-bar').innerHTML =
+      `<i class="support" style="flex:${t.supportive}"></i><i class="neutral swatch" style="flex:${t.neutral};height:auto;width:auto"></i><i class="oppose" style="flex:${t.critical}"></i>`;
+    hover($('laya-bar'), `Supportive ${pct(t.supportive)} · Neutral ${pct(t.neutral)} · Critical ${pct(t.critical)}`);
+    const cls = { supportive: 'support', critical: 'oppose', neutral: 'neutral' };
+    $('laya-items').innerHTML = laya.items.map((it) => {
+      const link = /^https?:\/\//i.test(it.url) ? `<a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">${esc(it.title || it.url)}</a><br>` : '';
+      return `<li><span class="tone"><i class="dot ${cls[it.tone] || 'neutral'}"></i>${esc(it.tone)} ${pct(it.probabilities?.[it.tone] || 0)}</span>` +
+        `<span>${link}${esc(it.report)}</span></li>`;
+    }).join('');
+  }
+
   function renderTimeline(res) {
     const W = 560, H = 250, L = 38, R = 78, T = 10, B = 26;
     const days = res.aware.mean.length - 1;
@@ -206,6 +228,7 @@
     renderOutcomes(f.outcomes || []);
     renderSegments(segments);
     renderLists(f);
+    renderLaya(f, demo);
     $('timeline').innerHTML = '<p class="fine">Running the simulation…</p>';
     web.layoutSegments(segments);
     web.snapshots = null;

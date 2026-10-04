@@ -81,6 +81,20 @@
         <p class="fine">Bars show the split among people in that audience who hear about it.</p>
       </article>
 
+      <article class="panel wide" id="laya-panel" hidden>
+        <h2>Tone of the evidence</h2>
+        <p class="fine lead" id="laya-lead"></p>
+        <div id="laya-body">
+          <ul class="legend">
+            <li><i class="swatch support"></i>Supportive</li>
+            <li><i class="swatch neutral"></i>Neutral</li>
+            <li><i class="swatch oppose"></i>Critical</li>
+          </ul>
+          <div class="stack tall" id="laya-bar"></div>
+          <ul class="evidence" id="laya-items"></ul>
+        </div>
+      </article>
+
       <article class="panel">
         <h2>Closest past events</h2>
         <ol class="list" id="analogues"></ol>
@@ -95,7 +109,7 @@
 
       <article class="panel wide method">
         <h2>How this was made</h2>
-        <p>Claude searches current news, picks the closest historical events and estimates a probability for each outcome. It also estimates, for each audience, how many people hear about it, how they split, and how many pass it on. Those rates drive a spread model of 1,000,000 simulated people, run 20 times in your browser. The probabilities are model judgement and the population figures are a simulation; neither is a measurement.</p>
+        <p>Claude searches current news, picks the closest historical events and estimates a probability for each outcome. It also estimates, for each audience, how many people hear about it, how they split, and how many pass it on. Laya, a small open decision model, separately scores the tone of each source and its reading is passed to the forecasters as one signal. The audience rates drive a spread model of 1,000,000 simulated people, run 20 times in your browser. The probabilities are model judgement and the population figures are a simulation; neither is a measurement.</p>
       </article>
     </section>
   </main>

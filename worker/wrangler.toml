@@ -15,6 +15,10 @@ ALLOWED_ORIGINS = "http://localhost:4173"
 DAILY_LIMIT = "5"
 # Independent forecaster samples averaged per question.
 SAMPLES = "3"
+# Base URL of a running laya-serve instance (https://github.com/NandhaKishorM/laya).
+# Leave empty to skip evidence scoring. If the server needs a key:
+#   npx wrangler secret put LAYA_API_KEY
+LAYA_URL = ""
 
 # The API key is a secret, never a var:
 #   npx wrangler secret put ANTHROPIC_API_KEY

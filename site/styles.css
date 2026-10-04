@@ -111,7 +111,7 @@ button:focus-visible, input:focus-visible, .chip:focus-visible, summary:focus-vi
 
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--text-2); }
 .legend li { display: flex; align-items: center; gap: 6px; }
-.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot { flex: none; width: 8px; height: 8px; border-radius: 50%; }
 .swatch { width: 12px; height: 4px; border-radius: 2px; }
 .dot.unaware { background: #5b6a88; }
 .neutral.swatch { background: var(--neutral); }
@@ -167,6 +167,12 @@ h2.gap { margin-top: 26px; }
 .seg-meta { color: var(--text-3); font: 12px/1.6 var(--mono); white-space: nowrap; }
 .stack { display: flex; gap: 2px; height: 10px; margin: 7px 0 6px; }
 .stack i { display: block; min-width: 2px; border-radius: 2px; }
+.stack.tall { height: 14px; margin: 12px 0 16px; }
+.fine.lead { margin: 0 0 12px; font-size: 13px; color: var(--text-2); }
+.evidence { margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.evidence li { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); color: var(--text-2); }
+.evidence a { color: var(--text); text-decoration-color: var(--text-3); }
+.tone { display: flex; align-items: center; gap: 6px; font: 12px/1.5 var(--mono); color: var(--text); white-space: nowrap; }
 .seg-text { margin: 0; font-size: 13px; color: var(--text-2); }
 
 .list { margin: 0; padding-left: 18px; font-size: 14px; color: var(--text-2); }
@@ -203,5 +209,6 @@ th:first-child, td:first-child { text-align: left; }
   .out-label { grid-column: 1 / -1; }
   form { flex-direction: column; }
   .hud { border-radius: 14px; }
+  .evidence li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   button[type="submit"] { padding: 14px; }
 }
