@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Murmur</title>
+  <meta name="description" content="Ask what happens next. Murmur researches the question, forecasts the outcomes and simulates how one million people react.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="web" aria-hidden="true"></canvas>
+
+  <header class="top">
+    <a class="brand" href="./">MURMUR</a>
+    <span class="tag">population-scale reaction forecasts</span>
+  </header>
+
+  <main>
+    <section class="stage" id="stage">
+      <div class="hero" id="hero">
+        <h1>Ask what happens next.</h1>
+        <p class="lede">Murmur reads the latest news, finds what happened the last time, and plays the reaction out across <strong>1,000,000 simulated people</strong>.</p>
+
+        <form id="ask" autocomplete="off">
+          <label class="sr" for="q">Your question</label>
+          <input id="q" name="q" maxlength="300" placeholder="What if a major airline bans carry-on bags?" required>
+          <button type="submit" id="go">Simulate</button>
+        </form>
+        <p class="note" id="note"></p>
+        <div class="chips" id="chips"></div>
+      </div>
+
+      <div class="hud" id="hud" hidden>
+        <div class="hud-day"><span id="hud-day">Day 0</span><button type="button" id="replay" class="ghost">Replay</button></div>
+        <ul class="legend" id="web-legend">
+          <li><i class="dot unaware"></i>Unaware</li>
+          <li><i class="dot neutral"></i>Aware, neutral</li>
+          <li><i class="dot support"></i>Supports</li>
+          <li><i class="dot oppose"></i>Opposes</li>
+        </ul>
+      </div>
+
+      <dl class="counters" id="counters">
+        <div><dt>Simulated people</dt><dd id="c-people">1,000,000</dd></div>
+        <div><dt>Simulation runs</dt><dd id="c-runs">20</dd></div>
+        <div><dt>Interactions simulated</dt><dd id="c-inter">—</dd></div>
+        <div><dt>Sources read</dt><dd id="c-sources">—</dd></div>
+        <div><dt>Model samples</dt><dd id="c-samples">—</dd></div>
+      </dl>
+    </section>
+
+    <section class="results" id="results" hidden>
+      <div class="banner" id="demo-banner" hidden></div>
+
+      <article class="panel wide">
+        <h2>Forecast</h2>
+        <p class="summary" id="summary"></p>
+        <div class="outcomes" id="outcomes"></div>
+        <p class="fine">Bar is the averaged probability. The bracket is the lowest and highest estimate across model samples.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Spread through the population</h2>
+        <ul class="legend">
+          <li><i class="swatch aware"></i>Aware</li>
+          <li><i class="swatch support"></i>Supports</li>
+          <li><i class="swatch oppose"></i>Opposes</li>
+        </ul>
+        <div class="chart" id="timeline"><p class="fine">Running the simulation…</p></div>
+        <details><summary>View as table</summary><div id="timeline-table"></div></details>
+      </article>
+
+      <article class="panel">
+        <h2>Reaction by audience</h2>
+        <ul class="legend">
+          <li><i class="swatch support"></i>Supports</li>
+          <li><i class="swatch neutral"></i>Neutral</li>
+          <li><i class="swatch oppose"></i>Opposes</li>
+        </ul>
+        <div class="segments" id="segments"></div>
+        <p class="fine">Bars show the split among people in that audience who hear about it.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Closest past events</h2>
+        <ol class="list" id="analogues"></ol>
+      </article>
+
+      <article class="panel">
+        <h2>What would change this</h2>
+        <ul class="list" id="drivers"></ul>
+        <h2 class="gap">Sources</h2>
+        <ul class="list sources" id="sources"></ul>
+      </article>
+
+      <article class="panel wide method">
+        <h2>How this was made</h2>
+        <p>Claude searches current news, picks the closest historical events and estimates a probability for each outcome. It also estimates, for each audience, how many people hear about it, how they split, and how many pass it on. Those rates drive a spread model of 1,000,000 simulated people, run 20 times in your browser. The probabilities are model judgement and the population figures are a simulation; neither is a measurement.</p>
+      </article>
+    </section>
+  </main>
+
+  <div class="tip" id="tip" role="tooltip" hidden></div>
+
+  <script src="config.js"></script>
+  <script src="demo.js"></script>
+  <script src="web.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
