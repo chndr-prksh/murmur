@@ -54,7 +54,7 @@ laya-serve   # listens on port 8000
 
 Put that server's public URL in `LAYA_URL` in `worker/wrangler.toml`. If it is unset or unreachable the step is skipped and the forecast still completes.
 
-Each new question makes one web-search call and several panel calls to Claude Opus 5.5. `DAILY_LIMIT` caps new questions per visitor per day and repeated questions are served from cache for six hours.
+Each new question makes one web-search call and several panel calls to Claude Opus 5.5. `DAILY_LIMIT` caps new questions per visitor per day and repeated questions are served from cache for six hours..
 
 ## Licence
 
